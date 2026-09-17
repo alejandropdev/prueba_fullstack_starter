@@ -1,0 +1,27 @@
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { {{ENTITY_NAME}} } from './entities/{{ENTITY_NAME_LOWER}}.entity';
+
+@Injectable()
+export class {{MODULE_NAME_UPPER}}Service {
+  constructor(
+    @InjectRepository({{ENTITY_NAME}})
+    private readonly {{MODULE_NAME}}Repository: Repository<{{ENTITY_NAME}}>,
+  ) {}
+
+  async findAllForTenant(tenantId: string): Promise<{{ENTITY_NAME}}[]> {
+    return this.{{MODULE_NAME}}Repository.find({
+      where: { tenantId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findOneForTenant(id: string, tenantId: string): Promise<{{ENTITY_NAME}}> {
+    const {{ENTITY_NAME_LOWER}} = await this.{{MODULE_NAME}}Repository.findOneBy({ id, tenantId });
+    if (!{{ENTITY_NAME_LOWER}}) {
+      throw new NotFoundException('{{ENTITY_NAME}} no encontrada');
+    }
+    return {{ENTITY_NAME_LOWER}};
+  }
+}

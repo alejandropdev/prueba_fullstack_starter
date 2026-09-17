@@ -1,0 +1,32 @@
+﻿import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { {{MODULE_NAME_UPPER}}Service } from './{{MODULE_NAME}}.service';
+import { {{ENTITY_NAME}} } from './entities/{{ENTITY_NAME_LOWER}}.entity';
+
+@ApiTags('{{MODULE_NAME}}')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('{{MODULE_NAME}}')
+export class {{MODULE_NAME_UPPER}}Controller {
+  constructor(private readonly {{MODULE_NAME}}Service: {{MODULE_NAME_UPPER}}Service) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Listar {{MODULE_NAME}} del tenant' })
+  @ApiResponse({ status: 200, description: '{{MODULE_NAME}} del tenant', type: [{{ENTITY_NAME}}] })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  findAll(@CurrentUser() user: AuthenticatedUser) {
+    return this.{{MODULE_NAME}}Service.findAllForTenant(user.tenantId);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener un {{ENTITY_NAME_LOWER}} del tenant' })
+  @ApiResponse({ status: 200, description: '{{ENTITY_NAME}} encontrada', type: {{ENTITY_NAME}} })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({ status: 404, description: '{{ENTITY_NAME}} no encontrada' })
+  findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.{{MODULE_NAME}}Service.findOneForTenant(id, user.tenantId);
+  }
+}

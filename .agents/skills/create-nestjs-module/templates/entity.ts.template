@@ -1,0 +1,37 @@
+﻿import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+
+@Entity('{{MODULE_NAME}}')
+export class {{ENTITY_NAME}} {
+  @ApiProperty({ example: 'uuid-ejemplo' })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ApiProperty({ example: 'uuid-tenant-ejemplo' })
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenantId: string;
+
+  @ApiHideProperty()
+  @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: Tenant;
+
+  // Agregar campos específicos del módulo aquí
+
+  @ApiProperty()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @ApiProperty()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+}
