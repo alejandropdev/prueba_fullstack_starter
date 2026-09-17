@@ -13,14 +13,18 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Prueba técnica Aravia - API base')
+    .setTitle('Prueba técnica Aravia - API')
     .setDescription(
-      'Auth + tenants + facturas de solo lectura. Construye tu solución sobre esta base.',
+      'Auth + tenants + facturas. Los endpoints protegidos reciben el token en el header `Authorization: Bearer <accessToken>` (obtenlo en `POST /auth/login`).',
     )
+    .setVersion('1.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: { persistAuthorization: true },
+    customSiteTitle: 'Prueba técnica Aravia - Docs',
+  });
 
   const port = configService.get<string>('APP_PORT', '3000');
   await app.listen(port);
