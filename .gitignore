@@ -1,0 +1,9 @@
+node_modules/
+dist/
+npm-debug.log*
+
+# .env SÍ se versiona a propósito en este starter: son credenciales de
+# desarrollo sin valor real, para que nadie pierda tiempo copiándolas.
+
+.DS_Store
+*.log
