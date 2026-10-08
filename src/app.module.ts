@@ -6,6 +6,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { FacturasModule } from './modules/facturas/facturas.module';
+import { NotasModule } from './modules/notas/notas.module';
+import { NotasCambiosModule } from './modules/notas_cambios/notas_cambios.module';
+import { NotasHistoryModule } from './modules/notas_history/notas_history.module';
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { FacturasModule } from './modules/facturas/facturas.module';
     UsersModule,
     TenantsModule,
     FacturasModule,
+    NotasModule,
+    NotasCambiosModule,
+    NotasHistoryModule,
   ],
 })
 export class AppModule {}
