@@ -17,6 +17,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
 volumes:
+  pgadmin_data:
   aravia_prueba_pgdata:
