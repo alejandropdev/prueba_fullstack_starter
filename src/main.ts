@@ -13,9 +13,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Prueba técnica Aravia - API base')
+    .setTitle('Prueba técnica Aravia')
     .setDescription(
-      'Auth + tenants + facturas de solo lectura. Construye tu solución sobre esta base.',
+      'Auth, tenants, facturas y notas de crédito. Cada nota ajusta el saldo en una transacción, deja historial y registra el aviso al cliente.',
     )
     .addBearerAuth()
     .build();
