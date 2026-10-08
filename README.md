@@ -130,3 +130,67 @@ prueba_fullstack_starter/
   npm run db:reset
   # equivale a: docker compose down -v && docker compose up -d
   ```
+
+---
+
+## Módulo de notas de crédito (solución)
+
+Permite a soporte emitir, consultar, corregir y anular notas de crédito sobre una
+factura sin modificar la base de datos manualmente.
+
+### Cómo ejecutarlo
+
+```bash
+docker compose up -d
+npm install
+npm run start:dev      # aplica la migración de notas de crédito al arrancar
+npm run test:e2e       # en otra terminal, con la API corriendo
+```
+
+### Endpoints
+
+Todos requieren `Authorization: Bearer <token>`. El tenant y el usuario salen del token.
+
+| Método | Ruta | Descripción |
+| ------ | ---- | ----------- |
+| `POST` | `/facturas/:facturaId/notas-credito` | Emite una nota. Body: `{ "monto": "1500.50", "motivo": "..." }`. Header opcional `Idempotency-Key`. |
+| `GET`  | `/facturas/:facturaId/notas-credito/historial` | Movimientos de saldo que las notas causaron en la factura. |
+| `GET`  | `/notas-credito?facturaId=&estado=` | Lista las notas del tenant. |
+| `GET`  | `/notas-credito/:id` | Detalle de una nota. |
+| `GET`  | `/notas-credito/:id/historial` | Eventos de la nota en orden. |
+| `POST` | `/notas-credito/:id/anular` | Anula la nota y restituye el saldo. Body: `{ "motivo": "..." }`. |
+| `POST` | `/notas-credito/:id/corregir` | Anula la nota y emite otra enlazada, en una sola transacción. Body: `{ "monto", "motivo" }`. |
+
+Respuestas de error: `400` monto o motivo inválido, `404` recurso inexistente o de
+otro tenant, `409` conflicto de estado (factura no emitida, nota ya anulada,
+`Idempotency-Key` reutilizada con otro contenido), `422` el monto excede el saldo.
+
+### Cómo se cumplen las restricciones
+
+- **Aislamiento por tenant**: toda consulta filtra por `tenant_id` del token, y la
+  FK compuesta `(factura_id, tenant_id)` impide en la base de datos asociar una nota
+  a una factura de otro tenant.
+- **Precisión del dinero**: `NUMERIC(14,2)` en la base de datos, `string` en la API y
+  `decimal.js` para operar. Un monto con más de 2 decimales se rechaza.
+- **Saldo consistente**: cada operación es una transacción que primero bloquea la
+  factura (`SELECT … FOR UPDATE`) y después valida. Las solicitudes simultáneas
+  sobre una misma factura se ejecutan de una en una.
+- **Trazabilidad**: cada movimiento inserta un evento en `nota_credito_eventos`
+  (quién, cuándo, motivo, saldo y estado antes y después) dentro de la misma
+  transacción. Un trigger rechaza `UPDATE` y `DELETE` sobre esa tabla.
+- **Aviso al cliente final**: el aviso se inserta en `notificaciones_outbox` dentro
+  de la transacción y se envía después del commit, con reintentos. El envío está
+  detrás de la interfaz `NotificadorPort`; la implementación actual lo escribe en el
+  log de la API (`AvisoClienteFinal`).
+
+### Supuestos y alcance
+
+- Solo se emiten notas sobre facturas `emitida` y por un monto menor o igual al
+  saldo pendiente.
+- Una nota emitida no se edita: corregir equivale a anular y emitir otra.
+- Si el saldo llega a 0, la factura queda `anulada` cuando las notas vigentes cubren
+  todo su valor y `pagada` en otro caso. Anular la nota la devuelve a `emitida`.
+- Cualquier usuario autenticado del tenant actúa como soporte (no hay roles).
+- Fuera de alcance: envío real por correo o SMS (la factura no tiene datos de
+  contacto del cliente), roles y aprobaciones, notas sobre facturas pagadas,
+  numeración fiscal y frontend.
